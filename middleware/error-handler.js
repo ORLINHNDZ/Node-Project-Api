@@ -10,11 +10,21 @@ const errorHandlerMiddleware = (err, req, res, next) => {
   if (err instanceof CustomAPIError) {
     return res.status(err.statusCode).json({ msg: err.message })
   }
+
+  if(err.name === 'validationError'){
+    customError.msg = Object.values(err.erros).map((item) => item.message).join(',')
+    customError.statusCode = 400
+  }
   if(err.code && err.code === 11000){
     customError.msg = `Duplicate value entered for ${Object.keys(err.keyValue)}`
     customError.statusCode = 400
   }
-  return res.status(customError.statusCode).json({ msg: customError.msg })
+  if(err.name === 'CastError'){
+    customError.msg = `No item found with id : ${err.value}`
+    customError.statusCode = 404
+  }
+  return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ err })
+  //return res.status(customError.statusCode).json({ msg: customError.msg })
 
 }
 
